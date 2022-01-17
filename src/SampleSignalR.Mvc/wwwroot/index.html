@@ -13,8 +13,16 @@
 </head>
 <body>
     <div class="container">
-        <input type="text" id="message" />
+        <input type="text" id="groupName" placeholder="groupName" />
+        <input type="button" id="joinGroup" value="Join Group" />
+        <input type="button" id="exitGroup" value="Exit Group" />
+
+        <br>
+        <br>
+
+        <input type="text" id="message" placeholder="Message" />
         <input type="button" id="sendmessage" value="Send" />
+
         <ul id="discussion"></ul>
     </div>
     <!--Script references. -->
@@ -23,8 +31,9 @@
     <!--Add script to update the page and send messages.-->
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-
             var messageInput = document.getElementById('message');
+            var groupNameInput = document.getElementById('groupName');
+
 
             // Get the user name and store it to prepend to messages.
             var name = prompt('Enter your name:', '');
@@ -37,7 +46,7 @@
                                 .build();
 
             // Create a function that the hub can call to broadcast messages.
-            connection.on('broadcastMessage', function (name, message) {
+            connection.on('sendMessageToGroup', function (name, message) {
                 // Html encode display name and message.
                 var encodedName = name;
                 var encodedMsg = message;
@@ -47,18 +56,35 @@
                 document.getElementById('discussion').appendChild(liElement);
             });
 
+            connection.on('send', function (message) {
+                // Add the message to the page.
+                var liElement = document.createElement('li');
+                liElement.innerHTML = message;
+                document.getElementById('discussion').appendChild(liElement);
+            });
+
             // Transport fallback functionality is now built into start.
             connection.start()
                 .then(function () {
                     console.log('connection started');
                     document.getElementById('sendmessage').addEventListener('click', function (event) {
                         // Call the Send method on the hub.
-                        connection.invoke('send', name, messageInput.value);
+                        connection.invoke('send', groupNameInput.value, name, messageInput.value);
 
                         // Clear text box and reset focus for next comment.
                         messageInput.value = '';
                         messageInput.focus();
                         event.preventDefault();
+                    });
+
+                    document.getElementById('joinGroup').addEventListener('click', function (event) {
+                        // Call the JoinGroup method on the hub.
+                        connection.invoke('joinGroup', groupNameInput.value);
+                    });
+
+                    document.getElementById('exitGroup').addEventListener('click', function (event) {
+                        // Call the ExitGroup method on the hub.
+                        connection.invoke('exitGroup', groupNameInput.value);
                     });
             })
             .catch(error => {

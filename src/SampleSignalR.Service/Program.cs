@@ -28,6 +28,9 @@
 
             do
             {
+                Console.WriteLine("Enter group (or quit to exit)");
+                var groupName = Console.ReadLine();
+
                 Console.WriteLine("Enter message (or quit to exit)");
                 Console.Write("> ");
                 var value = Console.ReadLine();
@@ -35,9 +38,10 @@
                 if ("quit".Equals(value, StringComparison.OrdinalIgnoreCase))
                     break;
 
-                await busControl.Publish<All<ChatHub>>(new
+                await busControl.Publish<Group<ChatHub>>(new
                 {
-                    Messages = protocols.ToProtocolDictionary("broadcastMessage", new object[] {"backend-process", value})
+                    GroupName = groupName,
+                    Messages = protocols.ToProtocolDictionary("sendMessageToGroup", new object[] {"backend-process", value})
                 });
             }
             while (true);
